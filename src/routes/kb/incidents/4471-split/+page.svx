@@ -1,0 +1,48 @@
+---
+layout: runbook
+title: '#4471 split · three problems, not one'
+owner: patryk
+status: open
+reviewed: 2026-11-24
+signature: 'v1.eyJzdWIiOiI1MDU1IiwiYXVkIjoiY2hhbGxlbmdlOndoYXQtaXQtc2hvd3MiLCJpYXQiOjE3OTU1NjMxMzQsImV4cCI6MTc5NTY0OTUzNH0.ZjM064RuJlcZnWD-ArcNhgbCu1iYABqk8SvrXbTrOC0'
+---
+
+<script>
+  import ProblemTable from '#lib/kb/ProblemTable.svelte';
+  import Callout from '#lib/kb/Callout.svelte';
+  import RenderStamp from '#lib/kb/RenderStamp.svelte';
+</script>
+
+[#4471](/kb/incidents/4471) was merged as one issue and marked known. Read by tenant, form and
+body, its reports describe three problems. Each has its own ticket and its own fix.
+
+<Callout kind="warn">
+The one queued parser fix closes only the first row. The other two stay broken after it ships.
+</Callout>
+
+## The split
+
+<ProblemTable ticket={4471} repo="patrykkopycinski/mega-what-it-shows" tickets={{ parser: 1, hint: 2, 'one-day-move': 3 }} />
+
+## How each report is placed
+
+1. **One id, one report.** The export repeats some ids. Each counts once.
+2. **One-day move.** The desk read these reports as a one-day shift (`desk-notes.json`): Tuesday
+   became Monday, every June booking one day off, Lisbon and Toronto seeing different days, an
+   invite that arrived before the booking. A month/day flip never moves a date by one day, so the
+   parser fix cannot close them.
+3. **hint.** The report came through booking-v3's form. That form prints `MM/DD/YYYY` under the
+   date field and reads the answer the tenant's way, day first. People type what the hint says.
+4. **parser.** Everything else from a day-first tenant: the shared parser reads the date month first.
+
+The tenant decides the cause, not the reporter's browser. Intake's tag comes from the browser
+locale, so it disagrees with the tenant on dozens of reports; the "intake tagged as" column shows
+how far. All numbers on this page are computed from the export at render time.
+
+## What changes on the desk
+
+- #4471 is not "one issue, one fix". Track the three tickets above.
+- A subject match ([decision 0001](/kb/decisions/0001-dedupe-by-subject)) says nothing about cause.
+  Merge on tenant, form and what the body describes.
+
+<RenderStamp {signature} />
