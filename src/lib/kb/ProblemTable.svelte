@@ -5,11 +5,12 @@
   import { tenantOf } from '#lib/kb/locales';
   import { splitTicket, type Problem } from '#lib/kb/problems';
 
-  // tickets: problem → issue number in `repo`, e.g. { parser: 1, hint: 2, 'one-day-move': 3 }
-  let { ticket, repo, tickets }: { ticket: number; repo: string; tickets: Partial<Record<Problem, number>> } = $props();
+  type Filed = { issue: number; state: string };
+  // tickets: problem → issue in `repo` and where it stands, e.g. { parser: { issue: 1, state: 'fixed' } }
+  let { ticket, repo, tickets }: { ticket: number; repo: string; tickets: Partial<Record<Problem, Filed>> } = $props();
 
   const split = $derived(splitTicket(reports as Report[], ticket, tenantOf, notes.oneDayMove));
-  const counted = $derived(split.groups.reduce((n, g) => n + g.reports.length, 0));
+  const placed = $derived(split.groups.filter((g) => !g.within).reduce((n, g) => n + g.reports.length, 0));
   const list = (m: Record<string, number>) =>
     Object.entries(m)
       .sort((a, b) => b[1] - a[1])
@@ -19,25 +20,30 @@
 
 <p class="sum">
   <strong>{split.total}</strong> unique reports merged into #{ticket} ·
-  <strong>{split.groups.length}</strong> problems · {counted} placed
+  <strong>{split.groups.length}</strong> problems · {placed} placed by cause
 </p>
 
 <table>
   <thead>
-    <tr><th>problem</th><th>reports</th><th>ticket</th><th>tenants</th><th>channels</th><th>intake tagged as</th><th>seen</th></tr>
+    <tr><th>problem</th><th>reports</th><th>ticket</th><th>state</th><th>tenants</th><th>channels</th><th>intake tagged as</th><th>seen</th></tr>
   </thead>
   <tbody>
     {#each split.groups as g (g.problem)}
-      <tr class:unplaced={!tickets[g.problem]}>
+      {@const filed = tickets[g.problem]}
+      <tr class:unfiled={!filed}>
         <td><code>{g.problem}</code></td>
-        <td><strong>{g.reports.length}</strong></td>
         <td>
-          {#if tickets[g.problem]}
-            <a href="https://github.com/{repo}/issues/{tickets[g.problem]}">{repo}#{tickets[g.problem]}</a>
+          <strong>{g.reports.length}</strong>
+          {#if g.within}<span class="small">(within <code>{g.within}</code>)</span>{/if}
+        </td>
+        <td>
+          {#if filed}
+            <a href="https://github.com/{repo}/issues/{filed.issue}">{repo}#{filed.issue}</a>
           {:else}
             no ticket yet
           {/if}
         </td>
+        <td>{filed?.state ?? ''}</td>
         <td>{g.tenants}</td>
         <td class="small">{list(g.channels)}</td>
         <td class="small">{list(g.taggedAs)}</td>
@@ -50,5 +56,5 @@
 <style>
   .sum { font-size: 1.1rem; }
   .small { color: var(--muted); font-size: 0.85em; }
-  .unplaced td { background: var(--warn-bg); }
+  .unfiled td { background: var(--warn-bg); }
 </style>

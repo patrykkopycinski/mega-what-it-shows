@@ -2,7 +2,7 @@
 layout: runbook
 title: '#4471 split · three problems, not one'
 owner: patryk
-status: open
+status: closed
 reviewed: 2026-11-24
 signature: 'v1.eyJzdWIiOiI1MDU1IiwiYXVkIjoiY2hhbGxlbmdlOndoYXQtaXQtc2hvd3MiLCJpYXQiOjE3OTU1NjMxMzQsImV4cCI6MTc5NTY0OTUzNH0.ZjM064RuJlcZnWD-ArcNhgbCu1iYABqk8SvrXbTrOC0'
 ---
@@ -13,27 +13,30 @@ signature: 'v1.eyJzdWIiOiI1MDU1IiwiYXVkIjoiY2hhbGxlbmdlOndoYXQtaXQtc2hvd3MiLCJpY
   import RenderStamp from '#lib/kb/RenderStamp.svelte';
 </script>
 
-[#4471](/kb/incidents/4471) was merged as one issue and marked known. Read by tenant, form and
-body, its reports describe three problems. Each has its own ticket and its own fix.
+[#4471](/kb/incidents/4471) was merged as one issue and marked known. Read by tenant and form,
+its reports describe two causes, each with its own ticket. Five of them the desk read as a
+one-day move, a third problem with a ticket of its own.
 
-<Callout kind="warn">
-The one queued parser fix closes only the first row. The other two stay broken after it ships.
+<Callout>
+Engineering closed #4471 on 5 October. <code>parser</code> is fixed (fix(dates): parse dd/mm for eu
+locales). <code>hint</code> won't be fixed: the booking-v3 form is retired. The engineering update
+does not mention the one-day moves.
 </Callout>
 
 ## The split
 
-<ProblemTable ticket={4471} repo="patrykkopycinski/mega-what-it-shows" tickets={{ parser: 1, hint: 2, 'one-day-move': 3 }} />
+<ProblemTable ticket={4471} repo="patrykkopycinski/mega-what-it-shows" tickets={{ parser: { issue: 1, state: 'closed · fixed' }, hint: { issue: 2, state: "closed · won't fix" }, 'one-day-move': { issue: 3, state: 'closed · not in the update' } }} />
 
 ## How each report is placed
 
 1. **One id, one report.** The export repeats some ids. Each counts once.
-2. **One-day move.** The desk read these reports as a one-day shift (`desk-notes.json`): Tuesday
-   became Monday, every June booking one day off, Lisbon and Toronto seeing different days, an
-   invite that arrived before the booking. A month/day flip never moves a date by one day, so the
-   parser fix cannot close them.
-3. **hint.** The report came through booking-v3's form. That form prints `MM/DD/YYYY` under the
+2. **hint.** The report came through booking-v3's form. That form prints `MM/DD/YYYY` under the
    date field and reads the answer the tenant's way, day first. People type what the hint says.
-4. **parser.** Everything else from a day-first tenant: the shared parser reads the date month first.
+3. **parser.** Everything else from a day-first tenant: the shared parser reads the date month first.
+4. **One-day move.** The desk read some reports as a one-day shift (`desk-notes.json`): Tuesday
+   became Monday, every June booking one day off, Lisbon and Toronto seeing different days, an
+   invite that arrived before the booking. They stay counted where the desk files them, under
+   `parser`, and get their own row and ticket, because a month/day flip never moves a date by one day.
 
 The tenant decides the cause, not the reporter's browser. Intake's tag comes from the browser
 locale, so it disagrees with the tenant on dozens of reports; the "intake tagged as" column shows
@@ -41,7 +44,7 @@ how far. All numbers on this page are computed from the export at render time.
 
 ## What changes on the desk
 
-- #4471 is not "one issue, one fix". Track the three tickets above.
+- #4471 was not "one issue, one fix": one cause was fixed and one was retired away.
 - A subject match ([decision 0001](/kb/decisions/0001-dedupe-by-subject)) says nothing about cause.
   Merge on tenant, form and what the body describes.
 
